@@ -9,33 +9,31 @@
 
 BluetoothSerial SerialBT;
 
-
+//Define Pins for Motors
 const int MOTOR_1F = 12;
 const int MOTOR_1B = 27;
 const int MOTOR_1PWM = 33;
-
 const int MOTOR_2F = 15;
 const int MOTOR_2B = 32;
 const int MOTOR_2PWM = 14;
 
+//Define Pins for Electromagnet and LED light
 const int ELECTRO = 4;
 const int LEDLIGHT = 21;
 
 
-
+//Define servos for the plow and arm
 Servo plowServo;
 Servo armServo;
 int plowPos = 0;
 int armPos = 0;
 
-short pwm = 0;
-
+//Command variable to get character sent in from android phone app
 char command;
 
 
 void setup() {
 
-  //Serial.begin(115200);
   SerialBT.begin("MiningRig"); //Bluetooth device name
   SerialBT.println("Ready to Pair with Bluetooth.");
 
@@ -43,15 +41,17 @@ void setup() {
   armServo.write(180);
   
   pinMode(LED_BUILTIN, OUTPUT);
-  
+
+
+ //Set output for Motor Pins
   pinMode(MOTOR_1F, OUTPUT);
   pinMode(MOTOR_1B, OUTPUT);
   pinMode(MOTOR_1PWM, OUTPUT);
-
   pinMode(MOTOR_2F, OUTPUT);
   pinMode(MOTOR_2B, OUTPUT);
   pinMode(MOTOR_2PWM, OUTPUT);
 
+  //Set output for electromagnet and LED pins
   pinMode(ELECTRO, OUTPUT);
   pinMode(LEDLIGHT, OUTPUT);
 
@@ -60,10 +60,13 @@ void setup() {
 
 void loop() {
   
-  //while(SerialBT.available()) {
+  //Case statements to make function call based on what character is sent to board from bluetooth android app
     if (SerialBT.available()>0) {
       command = SerialBT.read();
       switch(command) {
+        case 'q' :
+          forwardSlow();
+          break;
         case 'f' : 
           forward(); 
           break;
@@ -121,42 +124,27 @@ void loop() {
 }
 
 
+//Function for moving slow speed forward
+void forwardSlow() {
+    digitalWrite(MOTOR_1F, HIGH);
+    digitalWrite(MOTOR_2F, HIGH);   
+    digitalWrite(MOTOR_1B, LOW);
+    digitalWrite(MOTOR_2B, LOW);
+    analogWrite(MOTOR_1PWM, 50);
+    analogWrite(MOTOR_2PWM, 50);
+}
+
+//Function for moving medium speed forward
 void forward() {
     digitalWrite(MOTOR_1F, HIGH);
     digitalWrite(MOTOR_2F, HIGH);   
     digitalWrite(MOTOR_1B, LOW);
     digitalWrite(MOTOR_2B, LOW);
-    analogWrite(MOTOR_1PWM, 150);
-    analogWrite(MOTOR_2PWM, 150);
-
-/*
-  if (MOTOR_1B == LOW && MOTOR_2B == LOW) {
-    digitalWrite(MOTOR_1F, HIGH);
-    digitalWrite(MOTOR_2F, HIGH);  
-    if (pwm < 255) {
-      pwm += 85;
-      analogWrite(MOTOR_1PWM, pwm);
-      analogWrite(MOTOR_2PWM, pwm);
-    }
-  }
-  else if (MOTOR_1B == HIGH && MOTOR_2B == HIGH) {
-    if (pwm == 0){  
-      digitalWrite(MOTOR_1B, LOW);
-      digitalWrite(MOTOR_2B, LOW);
-    }
-    pwm -= 85;
-    analogWrite(MOTOR_1PWM, pwm);
-    analogWrite(MOTOR_2PWM, pwm);
-  }
-  else {
-    digitalWrite(MOTOR_1F, HIGH);
-    digitalWrite(MOTOR_2F, HIGH);
-    analogWrite(MOTOR_1PWM, 85);
-    analogWrite(MOTOR_2PWM, 85);
- }
- */
+    analogWrite(MOTOR_1PWM, 125);
+    analogWrite(MOTOR_2PWM, 125);
 }
 
+//Function for moving fast speed forward
 void forwardFast() {
    digitalWrite(MOTOR_1F, HIGH);
    digitalWrite(MOTOR_2F, HIGH);   
@@ -166,58 +154,37 @@ void forwardFast() {
    analogWrite(MOTOR_2PWM, 250); 
 }
 
-
+//Function for backwards movement
 void backward() {
-    /*  digitalWrite(MOTOR_1F, LOW);
+    digitalWrite(MOTOR_1F, LOW);
     digitalWrite(MOTOR_2F, LOW);   
     digitalWrite(MOTOR_1B, HIGH);
     digitalWrite(MOTOR_2B, HIGH);
-    */
-  if (MOTOR_1F == LOW && MOTOR_2F == LOW) {
-    digitalWrite(MOTOR_1B, HIGH);
-    digitalWrite(MOTOR_2B, HIGH);  
-    if (pwm < 255) {
-      pwm += 85;
-      analogWrite(MOTOR_1PWM, pwm);
-      analogWrite(MOTOR_2PWM, pwm);
-    }
-  }
-  else if (MOTOR_1F == HIGH && MOTOR_2F == HIGH) {
-    if (pwm == 0){  
-      digitalWrite(MOTOR_1F, LOW);
-      digitalWrite(MOTOR_2F, LOW);
-    }
-    pwm -= 85;
-    analogWrite(MOTOR_1PWM, pwm);
-    analogWrite(MOTOR_2PWM, pwm);
-  }
-  else {
-    digitalWrite(MOTOR_1B, HIGH);
-    digitalWrite(MOTOR_2B, HIGH);
-    analogWrite(MOTOR_1PWM, 85);
-    analogWrite(MOTOR_2PWM, 85);
-  }
-  
+    analogWrite(MOTOR_1PWM, 125);
+    analogWrite(MOTOR_2PWM, 125);  
 }
 
+//Turning left, sets right motor forward and left motor backward for track like turning
 void turnLeft() {
-  digitalWrite(MOTOR_1F, HIGH);
-  digitalWrite(MOTOR_1B, LOW);
-  digitalWrite(MOTOR_2B, HIGH);
-  digitalWrite(MOTOR_2F, LOW);
-  analogWrite(MOTOR_1PWM, 150);
-  analogWrite(MOTOR_2PWM, 150);
-}
-
-void turnRight() {
-  digitalWrite(MOTOR_2F, HIGH);
-  digitalWrite(MOTOR_2B, LOW);
-  digitalWrite(MOTOR_1B, HIGH);
   digitalWrite(MOTOR_1F, LOW);
-  analogWrite(MOTOR_1PWM, 150);
-  analogWrite(MOTOR_2PWM, 150);
+  digitalWrite(MOTOR_1B, HIGH);
+  digitalWrite(MOTOR_2B, LOW);
+  digitalWrite(MOTOR_2F, HIGH);
+  analogWrite(MOTOR_1PWM, 100);
+  analogWrite(MOTOR_2PWM, 125);
 }
 
+//Turning left, sets left motor forward and right motor backward for track like turning
+void turnRight() {
+  digitalWrite(MOTOR_2F, LOW);
+  digitalWrite(MOTOR_2B, HIGH);
+  digitalWrite(MOTOR_1B, LOW);
+  digitalWrite(MOTOR_1F, HIGH);
+  analogWrite(MOTOR_1PWM, 125);
+  analogWrite(MOTOR_2PWM, 100);
+}
+
+//Function to stop car, turns all motors off
 void stopCar() {
   digitalWrite(MOTOR_1F, LOW);
   digitalWrite(MOTOR_1B, LOW);
@@ -227,14 +194,17 @@ void stopCar() {
   analogWrite(MOTOR_2PWM, 0);
 }
 
+//Set electromagnet high to pick things up
 void magnetOn() {
   digitalWrite(ELECTRO, HIGH);
 }
 
+//Set electromagnet low to drop things
 void magnetOff() {
   digitalWrite(ELECTRO, LOW);  
 }
 
+//Turn LED light on if it is off, or turn LED light off if it is on
 void lights() {
   if (digitalRead(LEDLIGHT) == LOW) {
     digitalWrite(LEDLIGHT, HIGH);
@@ -244,7 +214,8 @@ void lights() {
    }
 }
 
-void plowUp() {
+///Lower plow using servo with delay so it lowers slowly
+void plowDown() {
   plowServo.attach(26); //Pin 26 is labeled as A0 on the board
   for (plowPos = 90; plowPos <= 180; plowPos += 1) {
     plowServo.write(plowPos);
@@ -253,7 +224,8 @@ void plowUp() {
    plowServo.detach();
 }
 
-void plowDown() {
+///Raise plow using servo with delay so it raises slowly
+void plowUp() {
   plowServo.attach(26);
   for (plowPos = 180; plowPos >= 90; plowPos -= 1) {
     plowServo.write(plowPos);
@@ -262,7 +234,8 @@ void plowDown() {
   plowServo.detach();
 }
 
-void armUp() {
+///Lower arm using servo with delay so it lowers slowly
+void armDown() {
  armServo.attach(25);
  for (armPos = 90; armPos <= 180; armPos += 1) {
     armServo.write(armPos);
@@ -271,7 +244,8 @@ void armUp() {
  armServo.detach();
 }
 
-void armDown() {
+///Raises arm using servo with delay so it raises slowly
+void armUp() {
  armServo.attach(25);
  for (armPos = 180; armPos >=90; armPos -= 1) {
     armServo.write(armPos);
